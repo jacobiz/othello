@@ -3,9 +3,10 @@ import DiscType._
 
 class OthelloBoard(val discs: Map[(Int, Int), Disc], val move: Move) {
   def next(playedDisc: Disc): OthelloBoard = {
-    val vectors = List((1, 1), (1, 0), (1, -1), (0, 1), (0, -1), (-1, 1), (-1, 0), (-1, -1))
+    val directions = List((1, 1), (1, 0), (1, -1), (0, 1), (0, -1), (-1, 1), (-1, 0), (-1, -1))
     val discListToFlip: List[Disc] = (
-      for (vector <- vectors) yield discsToFlip(playedDisc, vector, playedDisc.discType, Nil)
+      for (direction <- directions) yield 
+        discsToFlip((playedDisc.x, playedDisc.y), direction, playedDisc.discType, Nil)
     ).flatten
 
     var nextDiscs: Map[(Int, Int), Disc] = discs
@@ -17,15 +18,15 @@ class OthelloBoard(val discs: Map[(Int, Int), Disc], val move: Move) {
     new OthelloBoard(nextDiscs, move.next)
   }
   
-  //始点と方向を指定して、反転させるべきコマのリストを返す
-  def discsToFlip(start: Disc, vector: (Int, Int), discType: DiscType, buf: List[Disc]): List[Disc] = {
-    val adjacentDisc = discs((start.x + vector._1, start.y + vector._2))
+  //始点と向きを指定して、反転させるべきコマのリストを返す
+  def discsToFlip(start: (Int, Int), direction: (Int, Int), startDiscType: DiscType, buf: List[Disc]): List[Disc] = {
+    val adjacentDisc = discs((start._1 + direction._1, start._2 + direction._2))
     adjacentDisc.discType match {
       case Blank => Nil
       case Wall => Nil
-      case t if t == discType => buf
-      case t if t == discType.flipped => 
-        discsToFlip(adjacentDisc, vector, discType, adjacentDisc :: buf)
+      case t if t == startDiscType => buf
+      case t if t == startDiscType.flipped => 
+        discsToFlip((adjacentDisc.x, adjacentDisc.y), direction, startDiscType, adjacentDisc :: buf)
     }
   }
 
