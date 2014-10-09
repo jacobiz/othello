@@ -1,22 +1,16 @@
-case class Disc(x: Int, y: Int, discType: DiscType) {
-  def flipped = Disc(x, y, discType.flipped)
+sealed abstract class Disc {
+  def flipped: Disc
 }
 
-object DiscType {
-  case object Black extends DiscType {
-    def flipped = White
-  }
-  case object White extends DiscType {
-    def flipped = Black
-  }
-  case object Blank extends DiscType {
-    def flipped = Blank
-  }
-  case object Wall extends DiscType {
-    def flipped = Wall
-  }
+case object Black extends Disc {
+  def flipped = White
 }
-
-sealed abstract class DiscType {
-  def flipped: DiscType
+case object White extends Disc {
+  def flipped = Black
+}
+case object Blank extends Disc {
+  def flipped = Blank
+}
+case object Wall extends Disc {
+  def flipped = Wall
 }
