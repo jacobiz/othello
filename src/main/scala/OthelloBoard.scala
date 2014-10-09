@@ -1,31 +1,38 @@
-class OthelloBoard(val discs: Map[(Int, Int), Disc], val move: Move) {
-  def next(playedDisc: (Int, Int, Disc)): OthelloBoard = {
-    val directions = List((1, 1), (1, 0), (1, -1), (0, 1), (0, -1), (-1, 1), (-1, 0), (-1, -1))
-    val discListToFlip: List[((Int, Int), Disc)] = (
-      for (direction <- directions) yield 
-        discsToFlip((playedDisc._1, playedDisc._2), direction, playedDisc._3, Nil)
-    ).flatten
+import Disc._
 
-    var nextDiscs: Map[(Int, Int), Disc] = discs
-    nextDiscs += (playedDisc._1, playedDisc._2) -> playedDisc._3
-    for (discToFlip <- discListToFlip) {
-      nextDiscs += discToFlip._1 -> discToFlip._2.flipped
+class OthelloBoard(val discs: Map[Coordinates, Disc], val move: Move) {
+  def next(placedCoordinates: Coordinates): OthelloBoard = {
+    val playedDisc = PlacedDisc(placedCoordinates, move.player.disc)
+    var nextDiscs: Map[Coordinates, Disc] = discs
+    nextDiscs += playedDisc.coordinates -> playedDisc.disc
+
+    for (discToFlip <- discsToFlip(playedDisc)) {
+      nextDiscs += discToFlip.coordinates -> discToFlip.disc.flipped
     }
     
     new OthelloBoard(nextDiscs, move.next)
   }
   
   //始点と向きを指定して、反転させるべきコマのリストを返す
-  def discsToFlip(start: (Int, Int), direction: (Int, Int), startDisc: Disc, buf: List[((Int, Int), Disc)]): List[((Int, Int), Disc)] = {
-    val adjacentLocation = (start._1 + direction._1, start._2 + direction._2)
-    val adjacentDisc = discs(adjacentLocation)
-    adjacentDisc match {
-      case Blank => Nil
-      case Wall => Nil
-      case t if t == startDisc => buf
-      case t if t == startDisc.flipped => 
-        discsToFlip(adjacentLocation, direction, startDisc, (adjacentLocation, adjacentDisc) :: buf)
+  def discsToFlip(playedDisc: PlacedDisc): List[PlacedDisc] = {
+    def discsToFlipWithSingleDirection(coordinates: Coordinates, direction: (Int, Int), list: List[PlacedDisc]): List[PlacedDisc] = {
+      val adjacentLocation = Coordinates(coordinates.x + direction._1, coordinates.y + direction._2)
+      val adjacentDisc = discs(adjacentLocation)
+      adjacentDisc match {
+        case Blank => Nil
+        case Wall => Nil
+        case t if t == playedDisc.disc => list  //始点と同じ色まできたら、その間の反対色のlistを返す
+        case t if t == playedDisc.disc.flipped => 
+          discsToFlipWithSingleDirection(adjacentLocation, direction, PlacedDisc(adjacentLocation, adjacentDisc) :: list)
+      }
     }
+
+    val directions = List((1, 1), (1, 0), (1, -1), (0, 1), (0, -1), (-1, 1), (-1, 0), (-1, -1))
+    val returnList = (
+      for (direction <- directions) yield 
+        discsToFlipWithSingleDirection(playedDisc.coordinates, direction, Nil)
+    ).flatten
+    returnList
   }
 
   override def toString() = {
@@ -35,7 +42,7 @@ class OthelloBoard(val discs: Map[(Int, Int), Disc], val move: Move) {
     for (y <- 1 to 8) {
       buf.append(y)
       for (x <- 1 to 8) {
-        val char = discs((x, y)) match {
+        val char = discs(Coordinates(x, y)) match {
           case Blank => "□"
           case Black => "●"
           case White => "○"
@@ -64,7 +71,7 @@ object OthelloBoard {
           case (5, 5) => White
           case _ => Blank
         }
-        (x, y) -> disc
+        Coordinates(x, y) -> disc
       }).toMap
     new OthelloBoard(discs, Move(Player.Black, moveNumber = 1))
   }

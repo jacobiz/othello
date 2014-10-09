@@ -1,17 +1,22 @@
 object Othello extends App {
   
-  val board = OthelloBoard.init
+  var board = OthelloBoard.init
   println(board)
-  var nextBoard = board.next((4, 3, Black))
-  println(nextBoard)
-  nextBoard = nextBoard.next((3, 3, White))
-  println(nextBoard)
-  // nextBoard = nextBoard.next(Disc(5, 6, Black))
-  // println(nextBoard)
-  // nextBoard = nextBoard.next(Disc(4, 6, White))
-  // println(nextBoard)
-  // nextBoard = nextBoard.next(Disc(3, 6, Black))
-  // println(nextBoard)
-  // nextBoard = nextBoard.next(Disc(4, 7, White))
-  // println(nextBoard)
+  
+  var flag = true
+  while (board.move.moveNumber < 10) {
+    val inputCoordinates = readNextMove()
+    board = board.next(inputCoordinates)
+    println(board)
+  }
+
+  def readNextMove(): Coordinates = {
+    println("Type where to place a disc:'a1'-'f8'")
+    val input = readLine()
+    PlacedDisc.parseString(input) match {
+      case None    => println("Wrong input. Type again.")
+                      readNextMove()
+      case Some(x) => x
+    }
+  }
 }
