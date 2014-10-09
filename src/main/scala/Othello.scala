@@ -3,10 +3,9 @@ object Othello extends App {
   var board = OthelloBoard.init
   println(board)
   
-  var flag = true
-  while (board.move.moveNumber < 10) {
+  while (board.move.moveNumber < 10) { //仮に10手まで
     val inputCoordinates = readNextMove()
-    board = board.next(inputCoordinates)
+    board = board.next(inputCoordinates) //TODO おけない場所に置こうとした場合の処理追加
     println(board)
   }
 
